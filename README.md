@@ -40,3 +40,56 @@ In practice, the number of trading days in a year is approximated as **252**, le
 ```python
 annual_volatility = daily_volatility * sqrt(252)
 ```
+
+## Rolling Volatility
+
+Rolling volatility measures how market risk changes over time by computing volatility over a sliding window of recent returns instead of using the entire dataset.
+
+### Rolling Window Setup
+
+We define specific window sizes to capture different time horizons:
+
+```python
+windows = [20, 60, 120]
+```
+20 days $\approx$ one trading month60 days $\approx$ one quarter120 days $\approx$ half a yearEach window answers the question: “How volatile has the market been recently over this specific period?”
+
+# Computing Rolling Volatility
+
+The rolling volatility is computed by iterating through the defined windows:
+```python
+for window in windows:
+    data[f"vol_{window}"] = (
+        data["log_return"]
+        .rolling(window)
+        .std()
+        * np.sqrt(252)
+    )
+```
+
+Breakdown of the Calculation:
+1. data["log_return"]: Selects the daily log return series.
+
+2. .rolling(window): Creates a sliding window of size $w$ that moves forward one day at a time.
+
+3. .std(): Computes the standard deviation of log returns within each window.
+
+4. * np.sqrt(252): Annualizes the rolling daily volatility.
+
+Mathematically, the annualized rolling volatility $\sigma_{roll}$ for a window size $w$ at time $t$ is:
+$$
+\sigma_{\text{roll}, t} = \text{std}(r_{t-w+1}, \dots, r_t) \times \sqrt{252}
+$$
+
+### Output & Interpretation
+
+The script generates a new column for each window:
+* `vol_20`
+* `vol_60`
+* `vol_120`
+
+Each column contains an annualized volatility value for every date, based only on the most recent observations.
+
+* **Shorter windows ($N=20$):** Respond quickly to market shocks but are noisier.
+* **Longer windows ($N=120$):** Respond more slowly but provide smoother volatility trends.
+* **Risk Regimes:** This approach helps identify periods of high stress versus calm that a single static volatility number cannot capture.

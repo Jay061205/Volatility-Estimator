@@ -26,7 +26,7 @@ windows = [20, 60, 120]
 for window in windows:
     data[f"vol_{window}"] = (
         data["log_return"]
-        .rolling(window)
+        .rolling(window) # This is sliding window 
         .std()
         * np.sqrt(252)
     )

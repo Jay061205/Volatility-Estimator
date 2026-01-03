@@ -18,20 +18,31 @@ print(data.dtypes)  # As we converted the types, this makes sure that it is succ
 # Compute log returns
 data['log_return'] = np.log(data['Close'] / data['Close'].shift(1)) 
 # The above mathematical logic is necessary to understand so below is a good practical explanation
-# Suppose if today's price is Pt and yesterday's price is Pt-1
-# then the formula is as follows: (Pt - Pt-1)/Pt-1
-# Practical example is suppose Pt = 5 and Pt-1 = 4
-# According to formula 5-4/4 = 1/4 = 0.25
-# if we Multiply this 0.25 with 4, 0.25 * 4 = 1
-# and add that to 4, 4+1 = 5
-# We get the todays price which is the log_return
-# That's the whole explanation that was needed so far
+# Log returns are calculated as ln(Pt / Pt-1), where:
+# Pt   = today's closing price
+# Pt-1 = yesterday's closing price
+#
+# Log returns are preferred because:
+# - they are additive over time
+# - they behave better statistically
+# - they are standard in volatility calculations
+#
+# For small price changes, log returns are approximately equal to simple returns.
+
 
 data.dropna(inplace=True) # Removing empty spaces
 
 daily_vol = data['log_return'].std()    # Calculating the standard deviation of the log_return, which is daily volatility
 # Standard deviation is a statistical measure showing how spread out data points are from the mean (average) of a dataset.
-annual_vol = daily_vol * np.sqrt(252)   # calculating the ann
+annual_vol = daily_vol * np.sqrt(252)   # This needs a good explanation (refer below comments)
+# Annualized volatility is obtained by scaling daily volatility
+# by the square root of the number of trading days.
+#
+# This follows from the statistical rule that variances add over time,
+# and volatility is the square root of variance.
+#
+# 252 is used as an approximation for the number of trading days in a year.
+
 
 print(f"Daily Volatility: {daily_vol:.6f}") # Simply printing daily volatility upto 6 decimals
 print(f"Annualized Volatility: {annual_vol:.2%}") # Simply printing annualized volatility with 2 decimals and percent symbol

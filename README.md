@@ -39,3 +39,4 @@ In practice, the number of trading days in a year is approximated as **252**, le
 
 ```python
 annual_volatility = daily_volatility * sqrt(252)
+```

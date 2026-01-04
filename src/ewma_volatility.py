@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Load cleaned price data
+# Load price data
 raw = pd.read_csv("data/nifty50_close.csv")
 
 # Remove metadata rows from yfinance export
@@ -19,30 +19,23 @@ data.set_index("Date", inplace=True)
 data["log_return"] = np.log(data["Close"] / data["Close"].shift(1))
 data.dropna(inplace=True)
 
-# Rolling window sizes
-windows = [20, 60, 120]
+# EWMA parameter (RiskMetrics standard)
+lambda_ = 0.94
 
-# Compute rolling volatility (annualized)
-for window in windows:
-    data[f"vol_{window}"] = (
-        data["log_return"]
-        .rolling(window) # This is sliding window 
-        .std()
-        * np.sqrt(252)
-    )
+# Compute EWMA variance
+data["ewma_var"] = data["log_return"].ewm(alpha=1 - lambda_).var()
 
-# Plot rolling volatility
+# Convert variance to volatility and annualize
+data["ewma_vol"] = np.sqrt(data["ewma_var"]) * np.sqrt(252)
+
+# Plot EWMA volatility
 plt.figure(figsize=(12, 6))
 plt.gcf().canvas.manager.set_window_title(
-    "NIFTY 50 Rolling Volatility"
+    "NIFTY 50 EWMA Volatility (Annualized)"
 )
+plt.plot(data.index, data["ewma_vol"], label="EWMA Volatility", color="red")
 
-
-plt.plot(data.index, data["vol_20"], label="20-day Volatility")
-plt.plot(data.index, data["vol_60"], label="60-day Volatility")
-plt.plot(data.index, data["vol_120"], label="120-day Volatility")
-
-plt.title("NIFTY 50 Rolling Volatility (Annualized)")
+plt.title("NIFTY 50 EWMA Volatility (Annualized)")
 plt.xlabel("Date")
 plt.ylabel("Volatility")
 plt.legend()
